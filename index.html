@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LSB Waste Management Optimization Proposal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .heatmap-room {
+            transition: all 0.2s ease-in-out;
+            position: relative;
+            border: 1px solid rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .heatmap-room:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(0, 59, 115, 0.5);
+            z-index: 10;
+        }
+        .tooltip {
+            visibility: hidden;
+            width: 160px;
+            background-color: #003B73;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 0;
+            position: absolute;
+            z-index: 20;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -80px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .heatmap-room:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+        .hallway {
+            background-color: #E5E7EB;
+        }
+        .stairs {
+             background: repeating-linear-gradient(
+                45deg,
+                #D1D5DB,
+                #D1D5DB 10px,
+                #E5E7EB 10px,
+                #E5E7EB 20px
+            );
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-black text-[#003B73] mb-2">LSB Waste Management Optimization Proposal</h1>
+            <p class="text-lg md:text-xl text-[#0074D9]">A Data-Driven Approach to Enhanced Efficiency</p>
+        </header>
+
+        <main class="space-y-12">
+
+            <section class="bg-white rounded-lg shadow-md p-6 md:p-8">
+                <h2 class="text-2xl font-bold text-[#003B73] text-center mb-4">The Big Picture: A Building-Wide Opportunity</h2>
+                <p class="text-center text-gray-600 max-w-3xl mx-auto mb-8">
+                    A comprehensive one-week study of 195 trash bins within the Lorenzo Snow Administration (LSB) has uncovered a significant opportunity. The data reveals that a majority of bins are substantially underutilized, leading to inefficient use of custodial time and resources.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div class="text-center">
+                        <p class="text-8xl font-black text-[#FF4136]">64%</p>
+                        <p class="text-2xl font-bold text-[#0074D9]">of Bins are Operating Inefficiently</p>
+                        <p class="text-gray-600 mt-2">(Weekly average fill level below 25%)</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="overallDistributionChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-white rounded-lg shadow-md p-6 md:p-8">
+                <h2 class="text-2xl font-bold text-[#003B73] text-center mb-4">Location-Based Deep Dive: Where is the Inefficiency?</h2>
+                <p class="text-center text-gray-600 max-w-3xl mx-auto mb-8">
+                    While the issue is building-wide, inefficiency is concentrated in specific zones. The charts below visually break down the percentage of low-usage bins (avg. <25% full) by their location on the floor plan.
+                </p>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                    <div>
+                        <h3 class="text-xl font-bold text-center text-[#003B73] mb-4">Floor 1 Inefficiency Analysis</h3>
+                        <div class="w-full h-[500px] relative">
+                            <canvas id="floor1BreakdownChart"></canvas>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-center text-[#003B73] mb-4">Floor 2 Inefficiency Analysis</h3>
+                        <div class="w-full h-[500px] relative">
+                            <canvas id="floor2BreakdownChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="bg-white rounded-lg shadow-md p-6 md:p-8">
+                <h2 class="text-2xl font-bold text-[#003B73] text-center mb-4">Data Heatmap: Visualizing LSB Usage Rates</h2>
+                <p class="text-center text-gray-600 max-w-3xl mx-auto mb-8">
+                    The floor plan heatmaps below visualize the average trash bin usage rates for each office and common area. Areas closer to red are 'cold spots' with low usage, indicating a need for optimization. Areas closer to green are 'hot spots' with high usage. Hover over any space to see detailed data.
+                </p>
+                <div class="space-y-10">
+                    <div>
+                        <h3 class="text-xl font-bold text-center text-[#003B73] mb-4">Floor 1 Heatmap</h3>
+                        <div id="floor1-heatmap" class="grid grid-cols-12 gap-1 p-2 bg-gray-200 rounded-lg max-w-6xl mx-auto aspect-[1.6/1]"></div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-center text-[#003B73] mb-4">Floor 2 Heatmap</h3>
+                        <div id="floor2-heatmap" class="grid grid-cols-12 gap-1 p-2 bg-gray-200 rounded-lg max-w-6xl mx-auto aspect-[1.6/1]"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="bg-white rounded-lg shadow-md p-6 md:p-8">
+                <h2 class="text-2xl font-bold text-[#003B73] text-center mb-4">Proposal: A 3-Week Project Plan</h2>
+                <p class="text-center text-gray-600 max-w-3xl mx-auto mb-8">
+                    Based on the data, we propose a collaborative 3-week pilot program to validate an optimized waste management system for the LSB. This plan is designed to be minimally disruptive while providing clear, measurable results.
+                </p>
+                <div class="flex flex-col md:flex-row justify-center items-center md:items-start space-y-4 md:space-y-0 md:space-x-4">
+                    <div class="flex flex-col items-center text-center p-4 max-w-xs">
+                        <div class="w-16 h-16 bg-[#0074D9] text-white flex items-center justify-center rounded-full text-2xl font-bold mb-3">1</div>
+                        <h4 class="font-bold text-lg">Week 1: Baseline Data Collection</h4>
+                        <p class="text-gray-600 text-sm">The FM Evening Crew will collect data on the current "As-Is" system for one week to establish a clear, quantitative baseline.</p>
+                    </div>
+                    <div class="text-3xl text-gray-300 mt-8 md:mt-10">→</div>
+                    <div class="flex flex-col items-center text-center p-4 max-w-xs">
+                        <div class="w-16 h-16 bg-[#0074D9] text-white flex items-center justify-center rounded-full text-2xl font-bold mb-3">2</div>
+                        <h4 class="font-bold text-lg">Week 2: Analysis & Proposal</h4>
+                        <p class="text-gray-600 text-sm">We will analyze the collected data and submit this official proposal to LSB management, requesting approval for the pilot.</p>
+                    </div>
+                     <div class="text-3xl text-gray-300 mt-8 md:mt-10">→</div>
+                    <div class="flex flex-col items-center text-center p-4 max-w-xs">
+                        <div class="w-16 h-16 bg-[#0074D9] text-white flex items-center justify-center rounded-full text-2xl font-bold mb-3">3</div>
+                        <h4 class="font-bold text-lg">Week 3: Pilot & Measurement</h4>
+                        <p class="text-gray-600 text-sm">Upon approval, the FM Weekend Crew will implement the changes. The Evening Crew will then collect data on the new "To-Be" system for one week to measure its effectiveness and report the final results.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const tooltipTitleCallback = (tooltipItems) => {
+                const item = tooltipItems[0];
+                let label = item.chart.data.labels[item.dataIndex];
+                if (Array.isArray(label)) {
+                    return label.join(' ');
+                }
+                return label;
+            };
+
+            const processLabels = (labels) => {
+                return labels.map(label => {
+                    if (label.length > 16) {
+                        const words = label.split(' ');
+                        const lines = [];
+                        let currentLine = '';
+                        words.forEach(word => {
+                            if ((currentLine + word).length > 16) {
+                                lines.push(currentLine.trim());
+                                currentLine = '';
+                            }
+                            currentLine += word + ' ';
+                        });
+                        lines.push(currentLine.trim());
+                        return lines;
+                    }
+                    return label;
+                });
+            };
+
+            const overallData = {
+                totalBins: 195,
+                lowUsage: 125,
+                mediumUsage: 62,
+                highUsage: 8 
+            };
+
+            const overallDistributionCtx = document.getElementById('overallDistributionChart').getContext('2d');
+            new Chart(overallDistributionCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Low Usage (<25%)', 'Medium Usage (25-75%)', 'High Usage (>75%)'],
+                    datasets: [{
+                        label: 'Bin Usage Distribution',
+                        data: [overallData.lowUsage, overallData.mediumUsage, overallData.highUsage],
+                        backgroundColor: ['#FF4136', '#FFDC00', '#2ECC40'],
+                        borderColor: '#FFFFFF',
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                               title: tooltipTitleCallback
+                            }
+                        }
+                    }
+                }
+            });
+
+            const floor1Data = {
+                labels: processLabels([
+                    'Financial Services', 
+                    'Admissions',
+                    'Office of Compliance & Ethics', 
+                    'HR (Human Resources)', 
+                    'Student Employment & Budget Office', 
+                    'Student Recruitment',
+                    'Travel Services',
+                    'Career Service'
+                ]),
+                percentages: [82, 29, 75, 67, 50, 50, 20, 0]
+            };
+            
+            const floor2Data = {
+                labels: processLabels([
+                    'IT Department',
+                    'Marketing & Communications',
+                    'University Scheduling & Other Offices',
+                    '2nd Floor Offices', 
+                    'Counseling & Disability Services', 
+                    "President's Offices", 
+                    'Enterprise Information Systems'
+                ]),
+                percentages: [91, 46, 53, 88, 83, 77, 57]
+            };
+
+            const createBarChart = (ctx, data, floor) => {
+                const backgroundColors = data.labels.map((label, index) => {
+                    if (floor === 1 && index < 2) return '#0056b3'; 
+                    if (floor === 1 && index >= 2) return '#0074D9';
+                    if (floor === 2 && index < 3) return '#0056b3';
+                    if (floor === 2 && index >= 3) return '#0074D9';
+                    return '#0074D9';
+                });
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: '% of Low-Usage Bins (<25% Avg. Fill)',
+                            data: data.percentages,
+                            backgroundColor: backgroundColors,
+                            borderColor: '#003B73',
+                            borderWidth: 1,
+                            categoryPercentage: 0.8,
+                            barPercentage: 0.9
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {
+                                    callback: function(value) { return value + '%' }
+                                }
+                            },
+                             y: {
+                                afterBuildTicks: function(axis) {
+                                    const sectionLabels = {
+                                        1: { 0: 'Upper Section (176H)', 2: 'Lower Section (140H)' },
+                                        2: { 0: 'Upper Section (250Recep)', 3: 'Lower Section (200Recep)' }
+                                    };
+                                    const labels = sectionLabels[floor];
+                                    if (labels) {
+                                        for (const [index, text] of Object.entries(labels)) {
+                                            if (axis.ticks[index]) {
+                                                axis.ticks[index].label = [text, ...Array.isArray(axis.ticks[index].label) ? axis.ticks[index].label : [axis.ticks[index].label]];
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    title: tooltipTitleCallback
+                                }
+                            }
+                        }
+                    }
+                });
+            };
+
+            const floor1Ctx = document.getElementById('floor1BreakdownChart').getContext('2d');
+            createBarChart(floor1Ctx, floor1Data, 1);
+            
+            const floor2Ctx = document.getElementById('floor2BreakdownChart').getContext('2d');
+            createBarChart(floor2Ctx, floor2Data, 2);
+
+            const heatmapData = { '121': 4.5, '119': 18, '117': 52.4, '115': 21, '120': 'N/A', '122': 'N/A', '114': 13, '110': 41, '106': 17.8, '102': 25, '104': 44, '100': 32.6, '126': 'N/A', '140H': 'N/A', '138': 'N/A', '133': 'N/A', '135': 'N/A', '134': 'N/A', '130': 39.1, '136': 20.8,'136C':22, '130A': 38, '130B': 33, '180': 15.5, '191': 22, '189': 10, '187': 14, '197': 'N/A', '195': 'N/A', '183': 4, '193A': 19, '193': 15.4, '176H': 7, '160': 'N/A', '181': 'N/A', '150': 15.1, '152': 'N/A', '153': 'N/A', '158': 'N/A', '170': 'N/A', '174': 'N/A', '165': 'N/A', '218A': 'N/A', '218': 5, '218B': 'N/A', '220': 'N/A', '211': 29, '209': 22.8, '216': 5.4, '202': 'N/A', '214': 47, '206': 27, '204': 0, '225': 'N/A', '201': 'N/A', '222': 'N/A', '205': 0, '203': 0, '200': 20.3, '242': 40, '232': 'N/A', '237': 22, '243': 12.7, '241': 20, '238A': 'N/A', '238Z': 'N/A', '238': 20, '239A': 'N/A', '239': 16, '240': 0, '285': 11.7, '283': 28.3, '281': 10, '279': 10, '289': 9.6, '275': 33.3, '291': 25, '293': 'N/A', '250': 40, '257': 0, '255': 0, '253': 85, '259': 5, '263': 13.3, '261': 13.3, '254': 5, '256': 'N/A', '262Z': 'N/A', '261X': 'N/A' };
+
+            function getHeatmapColor(percentage) {
+                if (percentage === 'N/A' || percentage === null) return 'bg-gray-300';
+                if (percentage < 25) return 'bg-red-300 hover:bg-red-400';
+                if (percentage < 75) return 'bg-yellow-300 hover:bg-yellow-400';
+                return 'bg-green-300 hover:bg-green-400';
+            }
+
+            function createRoomElement(room) {
+                const roomEl = document.createElement('div');
+                const colorClass = getHeatmapColor(room.usage);
+                roomEl.className = `heatmap-room p-1 rounded text-center text-[8px] md:text-xs font-semibold text-gray-800 flex items-center justify-center ${colorClass} ${room.grid}`;
+                roomEl.textContent = room.id;
+                
+                const tooltipEl = document.createElement('span');
+                tooltipEl.className = 'tooltip';
+                tooltipEl.innerHTML = `Room: ${room.id}<br>Avg. Usage: ${room.usage}%`;
+                if (room.usage === 'N/A') {
+                     tooltipEl.innerHTML = `Room: ${room.id}<br>No Data`;
+                }
+
+                roomEl.appendChild(tooltipEl);
+                return roomEl;
+            }
+            
+            const floor1Layout = [
+                {id: '121', usage: heatmapData['121'], grid: 'col-start-1 row-start-1 row-span-2'}, {id: '119', usage: heatmapData['119'], grid: 'col-start-2 row-start-1'}, {id: '117', usage: heatmapData['117'], grid: 'col-start-3 row-start-1'}, {id: '115', usage: heatmapData['115'], grid: 'col-start-4 row-start-1'},
+                {id: '102', usage: heatmapData['102'], grid: 'col-start-1 row-start-3'},{id: '104', usage: heatmapData['104'], grid: 'col-start-1 row-start-4'},
+                {id: '120', usage: 'N/A', grid: 'col-start-2 row-start-3'},{id: '122', usage: 'N/A', grid: 'col-start-2 row-start-4'},
+                {id: '114', usage: heatmapData['114'], grid: 'col-start-3 row-start-4'},{id: '110', usage: heatmapData['110'], grid: 'col-start-4 row-start-4'},
+                {id: '106', usage: heatmapData['106'], grid: 'col-start-2 row-start-5 col-span-3'},
+                {id: '100', usage: heatmapData['100'], grid: 'col-start-2 row-start-6 col-span-3 row-span-2'},
+                {id: '126', usage: heatmapData['126'], grid: 'col-start-1 row-start-6'},
+                {id: '', class: 'stairs col-start-1 row-start-8 row-span-2'},
+                {id: '140H', usage: heatmapData['140H'], grid: 'col-start-2 row-start-8 col-span-3 hallway'},
+                {id: '136', usage: heatmapData['136'], grid: 'col-start-1 row-start-10 col-span-2'},{id: '136C', usage: heatmapData['136C'], grid: 'col-start-3 row-start-10'},
+                {id: '133', usage: heatmapData['133'], grid: 'col-start-2 row-start-9'},{id: '135', usage: heatmapData['135'], grid: 'col-start-4 row-start-9'},
+                {id: '130', usage: heatmapData['130'], grid: 'col-start-4 row-start-10 col-span-1 row-span-2'},
+                {id: '130A', usage: heatmapData['130A'], grid: 'col-start-1 row-start-12'},{id: '130B', usage: heatmapData['130B'], grid: 'col-start-2 row-start-12'},
+                {id: '', class: 'hallway col-start-5 row-start-1 row-span-12'},
+                {id: '', class: 'stairs col-start-6 row-start-5 row-span-4'},
+                {id: '', class: 'hallway col-start-7 row-start-1 row-span-12'},
+                {id: '180', usage: heatmapData['180'], grid: 'col-start-8 row-start-1 row-span-3 col-span-3'},
+                {id: '191', usage: heatmapData['191'], grid: 'col-start-11 row-start-1'},{id: '189', usage: heatmapData['189'], grid: 'col-start-12 row-start-1'},
+                {id: '187', usage: heatmapData['187'], grid: 'col-start-11 row-start-2 col-span-2'},
+                {id: '197', usage: heatmapData['197'], grid: 'col-start-8 row-start-4'},{id: '195', usage: heatmapData['195'], grid: 'col-start-9 row-start-4 col-span-2'},
+                {id: '183', usage: heatmapData['183'], grid: 'col-start-10 row-start-4'},
+                {id: '193A', usage: heatmapData['193A'], grid: 'col-start-9 row-start-5 col-span-2'},{id: '193', usage: heatmapData['193'], grid: 'col-start-9 row-start-6 col-span-2'},
+                {id: '176H', usage: heatmapData['176H'], grid: 'col-start-8 row-start-8 col-span-3 hallway'},
+                {id: '152', usage: heatmapData['152'], grid: 'col-start-8 row-start-9'},{id: '153', usage: heatmapData['153'], grid: 'col-start-8 row-start-10'},
+                {id: '150', usage: heatmapData['150'], grid: 'col-start-9 row-start-9 col-span-2 row-span-2 font-bold'},
+                {id: '170', usage: heatmapData['170'], grid: 'col-start-12 row-start-9'},
+                {id: '158', usage: heatmapData['158'], grid: 'col-start-9 row-start-11 col-span-2'},
+                {id: '165', usage: heatmapData['165'], grid: 'col-start-11 row-start-11 col-span-2'},
+            ];
+
+            const floor2Layout = [
+                {id: '218A', usage: heatmapData['218A'], grid: 'col-start-1 row-start-1'}, {id: '218', usage: heatmapData['218'], grid: 'col-start-2 row-start-1'}, {id: '218B', usage: heatmapData['218B'], grid: 'col-start-3 row-start-1'},
+                {id: '220', usage: heatmapData['220'], grid: 'col-start-1 row-start-2 row-span-2'}, {id: '211', usage: heatmapData['211'], grid: 'col-start-3 row-start-2'}, {id: '209', usage: heatmapData['209'], grid: 'col-start-4 row-start-1 row-span-3'},
+                {id: '216', usage: heatmapData['216'], grid: 'col-start-2 row-start-3'}, {id: '211A', usage: 'N/A', grid: 'col-start-3 row-start-3'},
+                {id: '202', usage: heatmapData['202'], grid: 'col-start-1 row-start-4 row-span-2'}, {id: '214', usage: heatmapData['214'], grid: 'col-start-2 row-start-4'}, {id: '206', usage: heatmapData['206'], grid: 'col-start-3 row-start-4'},
+                {id: '204', usage: heatmapData['204'], grid: 'col-start-3 row-start-5 col-span-2'},
+                {id: '222', usage: heatmapData['222'], grid: 'col-start-1 row-start-6'}, {id: '225', usage: heatmapData['225'], grid: 'col-start-2 row-start-6'}, {id: '201', usage: heatmapData['201'], grid: 'col-start-3 row-start-6'},
+                {id: '205', usage: heatmapData['205'], grid: 'col-start-4 row-start-6'}, {id: '203', usage: heatmapData['203'], grid: 'col-start-4 row-start-7'},
+                {id: '200', usage: heatmapData['200'], grid: 'col-start-2 row-start-8 col-span-3 hallway'},
+                {id: '242', usage: heatmapData['242'], grid: 'col-start-1 row-start-9'}, {id: '232', usage: heatmapData['232'], grid: 'col-start-2 row-start-9'},
+                {id: '237', usage: heatmapData['237'], grid: 'col-start-1 row-start-10'}, {id: '243', usage: heatmapData['243'], grid: 'col-start-2 row-start-10 col-span-2'},
+                {id: '238', usage: heatmapData['238'], grid: 'col-start-1 row-start-11'}, {id: '239', usage: heatmapData['239'], grid: 'col-start-3 row-start-11'}, {id: '240', usage: heatmapData['240'], grid: 'col-start-4 row-start-11'},
+                {id: '241', usage: heatmapData['241'], grid: 'col-start-4 row-start-10'},
+                {id: '', class: 'hallway col-start-5 row-start-1 row-span-12'},
+                {id: '', class: 'stairs col-start-6 row-start-5 row-span-4'},
+                {id: '', class: 'hallway col-start-7 row-start-1 row-span-12'},
+                {id: '285', usage: heatmapData['285'], grid: 'col-start-8 row-start-1'}, {id: '283', usage: heatmapData['283'], grid: 'col-start-9 row-start-1'}, {id: '281', usage: heatmapData['281'], grid: 'col-start-10 row-start-1'}, {id: '279', usage: heatmapData['279'], grid: 'col-start-11 row-start-1'},
+                {id: '287', usage: heatmapData['287'], grid: 'col-start-8 row-start-2'}, {id: '277', usage: heatmapData['277'], grid: 'col-start-11 row-start-2'},
+                {id: '289', usage: heatmapData['289'], grid: 'col-start-8 row-start-3'}, {id: '270', usage: heatmapData['270'], grid: 'col-start-9 row-start-3 col-span-2 row-span-2'}, {id: '275', usage: heatmapData['275'], grid: 'col-start-11 row-start-3'},
+                {id: '291', usage: heatmapData['291'], grid: 'col-start-8 row-start-4'},
+                {id: '250', usage: heatmapData['250'], grid: 'col-start-8 row-start-6 col-span-2 hallway'},
+                {id: '253A', usage: heatmapData['253A'], grid: 'col-start-8 row-start-7'}, {id: '253', usage: heatmapData['253'], grid: 'col-start-9 row-start-7'},
+                {id: '254', usage: heatmapData['254'], grid: 'col-start-8 row-start-8'}, {id: '256', usage: heatmapData['256'], grid: 'col-start-9 row-start-8'},
+                {id: '255', usage: heatmapData['255'], grid: 'col-start-8 row-start-9'}, {id: '259', usage: heatmapData['259'], grid: 'col-start-9 row-start-9'},
+                {id: '257', usage: heatmapData['257'], grid: 'col-start-8 row-start-10'},
+                {id: '261', usage: heatmapData['261'], grid: 'col-start-11 row-start-10'},
+                {id: '263', usage: heatmapData['263'], grid: 'col-start-11 row-start-9'},
+                {id: '265', usage: 'N/A', grid: 'col-start-11 row-start-8'},
+            ];
+
+            const floor1Heatmap = document.getElementById('floor1-heatmap');
+            const floor2Heatmap = document.getElementById('floor2-heatmap');
+            floor1Heatmap.innerHTML = '';
+            floor2Heatmap.innerHTML = '';
+
+            floor1Layout.forEach(room => {
+                if(room.class) {
+                    const el = document.createElement('div');
+                    el.className = `${room.class} ${room.grid}`;
+                    floor1Heatmap.appendChild(el);
+                } else {
+                    floor1Heatmap.appendChild(createRoomElement(room));
+                }
+            });
+            
+            floor2Layout.forEach(room => {
+                 if(room.class) {
+                    const el = document.createElement('div');
+                    el.className = `${room.class} ${room.grid}`;
+                    floor2Heatmap.appendChild(el);
+                } else {
+                    floor2Heatmap.appendChild(createRoomElement(room));
+                }
+            });
+        });
+    </script>
+</body>
+</html>
